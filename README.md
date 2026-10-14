@@ -63,6 +63,18 @@ pytest packages/converter/tests backend/tests
 
 Phase 2 adds editorial passes (paragraph join, running matter, chapter patterns) and per-page OCR routing heuristics. OCR engines are optional via `CONVERTER_OCR_ENGINE`; unconfigured OCR never fabricates text.
 
+## Local iteration (Jupyter)
+
+Interactive walkthrough of parse → IR → editorial → EPUB (real engine calls, no mocked success):
+
+```bash
+pip install -e "packages/converter[dev,notebook]"
+python -m ipykernel install --user --name refolio-converter --display-name "refolio-converter"
+jupyter lab notebooks/dev_pipeline.ipynb
+```
+
+Put local PDFs under `notebooks/.local/` (gitignored). Do not commit commercial book PDFs.
+
 ## Configuration
 
 See `.env.example`. Key variables:
