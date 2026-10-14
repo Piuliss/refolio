@@ -19,3 +19,14 @@ def sample_pdf(tmp_path: Path) -> Path:
     c.drawString(72, 720, "Segunda pagina con otro parrafo sintetico.")
     c.save()
     return pdf_path
+
+
+@pytest.fixture
+def empty_pdf(tmp_path: Path) -> Path:
+    """Minimal PDF page with no text layer (image-only canvas)."""
+    pdf_path = tmp_path / "empty.pdf"
+    c = canvas.Canvas(str(pdf_path), pagesize=letter)
+    c.rect(72, 72, 100, 100, fill=1)
+    c.showPage()
+    c.save()
+    return pdf_path

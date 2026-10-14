@@ -7,12 +7,13 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-IR_SCHEMA_VERSION = "0.1.0"
+IR_SCHEMA_VERSION = "0.2.0"
 
 
 class BlockType(StrEnum):
     TITLE = "title"
     PARAGRAPH = "paragraph"
+    LINE = "line"
     LIST_ITEM = "list_item"
     QUOTE = "quote"
     IMAGE = "image"
@@ -28,11 +29,26 @@ class ExtractionMethod(StrEnum):
     HYBRID = "hybrid"
 
 
+class PageRoute(StrEnum):
+    NATIVE = "native"
+    OCR_RECOMMENDED = "ocr_recommended"
+    OCR_APPLIED = "ocr_applied"
+    OCR_SKIPPED_UNAVAILABLE = "ocr_skipped_unavailable"
+
+
 class ReviewStatus(StrEnum):
     UNREVIEWED = "unreviewed"
     ACCEPTED = "accepted"
     FLAGGED = "flagged"
     REJECTED = "rejected"
+
+
+class TransformOp(StrEnum):
+    EXTRACT = "extract"
+    JOIN_LINES = "join_lines"
+    REMOVE_RUNNING_MATTER = "remove_running_matter"
+    PROMOTE_CHAPTER = "promote_chapter"
+    OCR_ATTEMPT = "ocr_attempt"
 
 
 class BoundingBox(BaseModel):
@@ -43,6 +59,13 @@ class BoundingBox(BaseModel):
     x1: float
     y1: float
     page_index: int = Field(ge=0)
+
+
+class ChangeRecord(BaseModel):
+    op: TransformOp
+    reason: str
+    evidence: dict[str, Any] = Field(default_factory=dict)
+    previous_text: str | None = None
 
 
 class Provenance(BaseModel):
@@ -70,6 +93,15 @@ class ContentBlock(BaseModel):
     provenance: Provenance
     review_status: ReviewStatus = ReviewStatus.UNREVIEWED
     relationships: dict[str, list[str]] = Field(default_factory=dict)
+    change_history: list[ChangeRecord] = Field(default_factory=list)
+
+
+class PageDiagnostic(BaseModel):
+    page_index: int = Field(ge=0)
+    char_count: int = Field(ge=0)
+    alnum_ratio: float = Field(ge=0.0, le=1.0)
+    route: PageRoute = PageRoute.NATIVE
+    signals: dict[str, Any] = Field(default_factory=dict)
 
 
 class PageRecord(BaseModel):
@@ -91,6 +123,7 @@ class DocumentIR(BaseModel):
     pages: list[PageRecord] = Field(default_factory=list)
     blocks: list[ContentBlock] = Field(default_factory=list)
     warnings: list[WarningRecord] = Field(default_factory=list)
+    page_diagnostics: list[PageDiagnostic] = Field(default_factory=list)
     engine_trace: dict[str, Any] = Field(default_factory=dict)
 
     def sorted_blocks(self) -> list[ContentBlock]:

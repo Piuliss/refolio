@@ -20,6 +20,8 @@ def _block_to_html(block: ContentBlock) -> str:
         return f"<li>{text}</li>"
     if block.block_type == BlockType.QUOTE:
         return f"<blockquote><p>{text}</p></blockquote>"
+    if block.block_type == BlockType.LINE:
+        return f"<p>{text}</p>"
     return f"<p>{text}</p>"
 
 
@@ -61,8 +63,13 @@ def write_epub(document: DocumentIR, output_path: Path) -> None:
                 return
             chunk_idx += 1
             fname = f"chap_{chunk_idx:03d}.xhtml"
+            section_title = f"Section {chunk_idx}"
+            for b in chunk:
+                if b.block_type == BlockType.TITLE and b.current_text.strip():
+                    section_title = b.current_text.strip()[:120]
+                    break
             ch = epub.EpubHtml(
-                title=f"Section {chunk_idx}",
+                title=section_title,
                 file_name=fname,
                 lang=document.metadata.language,
             )

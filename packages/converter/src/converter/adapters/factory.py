@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 
-from converter.adapters.native_pdf import NativePdfParser
 from converter.contracts import DocumentParser
 
 
@@ -15,5 +14,11 @@ def get_parser(name: str | None = None) -> DocumentParser:
 
         return DoclingParser()
     if selected == "native_pdf":
+        from converter.adapters.routed_pdf import RoutedPdfParser
+
+        return RoutedPdfParser()
+    if selected == "native_pdf_raw":
+        from converter.adapters.native_pdf import NativePdfParser
+
         return NativePdfParser()
     raise ValueError(f"Unknown parser adapter: {selected}")

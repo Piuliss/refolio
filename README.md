@@ -61,6 +61,8 @@ ruff check packages/converter/src backend
 pytest packages/converter/tests backend/tests
 ```
 
+Phase 2 adds editorial passes (paragraph join, running matter, chapter patterns) and per-page OCR routing heuristics. OCR engines are optional via `CONVERTER_OCR_ENGINE`; unconfigured OCR never fabricates text.
+
 ## Configuration
 
 See `.env.example`. Key variables:

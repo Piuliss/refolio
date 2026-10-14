@@ -8,6 +8,7 @@ from pathlib import Path
 
 from converter.adapters.factory import get_parser
 from converter.contracts import DocumentParser, ParseContext
+from converter.editorial import apply_editorial_passes
 from converter.epub.writer import write_epub
 from converter.ir.models import DocumentIR
 from converter.ir.schema import validate_ir_document
@@ -43,7 +44,7 @@ class ConversionPipeline:
             language_hint=language_hint,
             max_pages=max_pages,
         )
-        document = self._parser.parse(ctx)
+        document = apply_editorial_passes(self._parser.parse(ctx))
         ir_path = output_dir / "document.ir.json"
         ir_data = document.model_dump(mode="json")
         validate_ir_document(ir_data)
