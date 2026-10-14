@@ -1,6 +1,6 @@
-# PDF → EPUB platform (Phase 1 slice)
+# Refolio
 
-High-fidelity PDF to reflowable EPUB — modular Django API + **Django-free** conversion engine.
+High-fidelity **PDF → reflowable EPUB** conversion — modular Django API + **Django-free** conversion engine.
 
 ## Prerequisites
 
