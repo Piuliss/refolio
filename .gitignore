@@ -13,7 +13,11 @@ backend/test_media/
 dist/
 .coverage
 htmlcov/
+.DS_Store
+**/.DS_Store
 .ipynb_checkpoints/
 notebooks/.local/
 notebooks/output/
+notebooks/**/*.pdf
+notebooks/pdfs/
 notebooks/**/*.ipynb_checkpoints/

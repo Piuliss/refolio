@@ -1,6 +1,6 @@
-# PDF → EPUB platform (Phase 1 slice)
+# Refolio
 
-High-fidelity PDF to reflowable EPUB — modular Django API + **Django-free** conversion engine.
+High-fidelity **PDF → reflowable EPUB** conversion — modular Django API + **Django-free** conversion engine.
 
 ## Prerequisites
 
@@ -8,6 +8,7 @@ High-fidelity PDF to reflowable EPUB — modular Django API + **Django-free** co
 - Optional: Docker Compose for Postgres/Redis
 - Optional: [EPUBCheck](https://www.w3.org/publishing/epubcheck/) JAR (`EPUBCHECK_JAR`)
 - Optional: Docling (`pip install -e 'packages/converter[docling]'`)
+- Optional OCR for scanned PDFs: **Tesseract** (recommended on macOS — `brew install tesseract`, `pip install -e 'packages/converter[ocr-tesseract]'`, `CONVERTER_OCR_ENGINE=tesseract`) or PaddleOCR (`pip install -e 'packages/converter[ocr]'`, Python **3.12**, `paddlepaddle==2.6.2`; slow on Apple Silicon CPU)
 
 ## Quick start (engine CLI only)
 
@@ -16,6 +17,14 @@ python -m venv .venv && source .venv/bin/activate
 pip install -e "packages/converter[dev]"
 # generate or use any small PDF
 converter /path/to/sample.pdf -o /tmp/out --skip-epubcheck
+
+# Local book sample (gitignored), first 3 pages:
+mkdir -p notebooks/.local/runs/cli-smoke
+converter notebooks/.local/cuatro-mil-semanas.pdf -o notebooks/.local/runs/cli-smoke --max-pages 3 --skip-epubcheck
+
+# Scanned invoice (needs OCR extra + CONVERTER_OCR_ENGINE):
+export CONVERTER_OCR_ENGINE=paddle
+converter notebooks/.local/pdfs/facturas/IMAG0007.PDF -o notebooks/.local/runs/cli-factura-p1 --max-pages 1 --skip-epubcheck
 ```
 
 ## Backend + worker (local)
@@ -82,6 +91,8 @@ See `.env.example`. Key variables:
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `CONVERTER_PARSER` | `native_pdf` | `docling` if extra installed |
+| `CONVERTER_OCR_ENGINE` | unset | `paddle` when `[ocr]` extra installed |
+| `CONVERTER_PADDLE_LANG` | `es` | PaddleOCR language code |
 | `EPUBCHECK_JAR` | unset | Java EPUBCheck JAR path |
 | `DATABASE_URL` | localhost:54329 | Postgres |
 | `CELERY_BROKER_URL` | localhost:56379 | Redis |

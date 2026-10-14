@@ -16,7 +16,8 @@ from converter.ir.models import (
 
 _SENTENCE_END = re.compile(r"[.!?…][\"')\]]*\s*$")
 _HYPHEN_BREAK = re.compile(r"-\s*$")
-_CONTINUATION_START = re.compile(r"^[a-záéíóúñü]")
+_CONTINUATION_START = re.compile(r"^[a-záéíóúñü¿¡]")
+_MID_SENTENCE_PUNCT = re.compile(r"[,;:–—]\s*$")
 
 
 def _merge_text(left: str, right: str) -> str:
@@ -41,6 +42,8 @@ def _should_join(prev: ContentBlock, nxt: ContentBlock) -> tuple[bool, str]:
         return False, ""
     if _HYPHEN_BREAK.search(prev_text):
         return True, "hyphen_line_break"
+    if _MID_SENTENCE_PUNCT.search(prev_text):
+        return True, "mid_sentence_punctuation"
     if _CONTINUATION_START.match(nxt_text):
         return True, "lowercase_continuation"
     return False, ""
