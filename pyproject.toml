@@ -1,0 +1,36 @@
+[project]
+name = "pdf-epub-platform"
+version = "0.1.0"
+description = "High-fidelity PDF to EPUB conversion platform"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv.workspace]
+members = ["packages/converter", "backend"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["packages/converter/src", "backend"]
+extend-exclude = ["**/migrations/*.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/migrations/*.py" = ["E501", "I001"]
+
+[tool.mypy]
+python_version = "3.12"
+mypy_path = "packages/converter/src"
+packages = ["converter"]
+
+[[tool.mypy.overrides]]
+module = ["ebooklib", "ebooklib.*", "docling", "docling.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["packages/converter/tests", "backend/tests"]
+pythonpath = ["packages/converter/src", "backend"]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
