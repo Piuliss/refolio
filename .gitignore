@@ -16,4 +16,6 @@ htmlcov/
 .ipynb_checkpoints/
 notebooks/.local/
 notebooks/output/
+notebooks/**/*.pdf
+notebooks/pdfs/
 notebooks/**/*.ipynb_checkpoints/
