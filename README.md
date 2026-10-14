@@ -73,7 +73,7 @@ python -m ipykernel install --user --name refolio-converter --display-name "refo
 jupyter lab notebooks/dev_pipeline.ipynb
 ```
 
-Put local PDFs under `notebooks/.local/` (gitignored). Do not commit commercial book PDFs.
+The notebook includes **local viewers**: PDF page PNG previews (PyMuPDF), image display, and sanitized HTML preview of the generated EPUB artifact. Outputs go under `notebooks/.local/runs/` (gitignored). Do not commit commercial book PDFs.
 
 ## Configuration
 
