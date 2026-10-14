@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "cursor/**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          pip install -e "packages/converter[dev]" -e "backend[dev]"
+      - name: Ruff
+        run: ruff check packages/converter/src backend/apps backend/config backend/tests
+      - name: Mypy
+        run: mypy packages/converter/src
+      - name: Pytest
+        run: pytest -q packages/converter/tests backend/tests
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.test

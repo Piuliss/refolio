@@ -1,0 +1,49 @@
+[project]
+name = "converter"
+version = "0.1.0"
+description = "Django-free PDF to EPUB conversion engine"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.10.6,<3",
+    "jsonschema>=4.23.0,<5",
+    "ebooklib>=0.18,<0.19",
+    "pypdf>=5.4.0,<6",
+    "reportlab>=4.2.5,<5",
+]
+
+[project.optional-dependencies]
+docling = [
+    "docling==2.138.0",
+]
+dev = [
+    "pytest>=8.3.4,<9",
+    "pytest-cov>=6.0.0,<7",
+    "ruff>=0.9.6,<1",
+    "mypy>=1.14.1,<2",
+    "types-jsonschema>=4.23.0.20241205",
+]
+notebook = [
+    "ipykernel>=6.29.5,<7",
+    "ipython>=8.31.0,<9",
+    "jupyterlab>=4.3.5,<5",
+]
+
+[project.scripts]
+converter = "converter.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/converter"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["converter"]
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = ["ebooklib", "ebooklib.*", "docling", "docling.*"]
+ignore_missing_imports = true
