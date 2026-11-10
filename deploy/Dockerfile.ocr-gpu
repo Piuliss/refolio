@@ -2,7 +2,8 @@
 # Build: docker build -f deploy/Dockerfile.ocr-gpu -t refolio-ocr-gpu:2.6.2-cu12 .
 # Run:  docker run --rm --gpus all -v ... refolio-ocr-gpu:2.6.2-cu12 ...
 
-FROM nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04
+# CUDA libs ship in the paddlepaddle-gpu cu120 wheel; host driver via --gpus all.
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1
