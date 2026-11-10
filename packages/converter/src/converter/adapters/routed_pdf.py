@@ -172,7 +172,7 @@ class RoutedPdfParser(DocumentParser):
                         )
 
             diagnostics.append(diag)
-            if not lines and diag.char_count == 0:
+            if not lines:
                 warnings.append(
                     WarningRecord(
                         code="empty_page_text",

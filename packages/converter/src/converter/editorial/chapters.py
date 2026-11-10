@@ -7,7 +7,11 @@ import re
 from converter.ir.models import BlockType, ChangeRecord, ContentBlock, TransformOp, WarningRecord
 
 _CHAPTER = re.compile(
-    r"^(?:cap[ií]tulo|chapter|parte)\s+([0-9]+|[IVXLC]+)\b",
+    r"^(?:cap[ií]tulo|chapter|parte)\s+([0-9]+|[IVXLC]+)(?:\s+.+)?$",
+    re.IGNORECASE,
+)
+_STANDALONE_CHAPTER = re.compile(
+    r"^(?:cap[ií]tulo|chapter|parte)\s+([0-9]+|[IVXLC]+)\s*$",
     re.IGNORECASE,
 )
 _ROMAN_ONLY = re.compile(r"^[IVXLC]+\.?$")
@@ -21,7 +25,7 @@ def detect_chapters(blocks: list[ContentBlock]) -> tuple[list[ContentBlock], lis
             out.append(block)
             continue
         text = block.current_text.strip()
-        if _CHAPTER.match(text):
+        if _CHAPTER.match(text) or _STANDALONE_CHAPTER.match(text):
             out.append(
                 block.model_copy(
                     update={

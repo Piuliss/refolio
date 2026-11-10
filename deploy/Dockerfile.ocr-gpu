@@ -1,0 +1,35 @@
+# PaddleOCR on NVIDIA GPU (CUDA 12.x) for Refolio converter smoke/batch OCR.
+# Build: docker build -f deploy/Dockerfile.ocr-gpu -t refolio-ocr-gpu:2.6.2-cu12 .
+# Run:  docker run --rm --gpus all -v ... refolio-ocr-gpu:2.6.2-cu12 ...
+
+# CUDA user-space libs ship in paddlepaddle-gpu (cu120); host driver via --gpus all.
+FROM python:3.12-slim-bookworm
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 \
+    libglib2.0-0 \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir pip==24.3.1
+
+WORKDIR /app
+
+COPY packages/converter /app/packages/converter
+
+RUN pip install --no-cache-dir \
+        paddlepaddle-gpu==2.6.2.post120 \
+        -i https://www.paddlepaddle.org.cn/packages/stable/cu120/ \
+    && pip install --no-cache-dir \
+        "pymupdf>=1.25.5,<2" \
+        "numpy>=1.26.0,<2" \
+        "setuptools>=69.0.0" \
+        paddleocr==2.10.0 \
+    && pip install --no-cache-dir -e /app/packages/converter --no-deps
+
+ENV CONVERTER_OCR_ENGINE=paddle \
+    CONVERTER_PADDLE_USE_ANGLE_CLS=0
+
+ENTRYPOINT ["converter"]

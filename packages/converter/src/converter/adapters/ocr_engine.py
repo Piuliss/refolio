@@ -78,4 +78,12 @@ def get_ocr_engine(name: str | None = None) -> OcrEngine | None:
         return None
     if selected == "stub":
         return UnconfiguredOcrEngine()
+    if selected in {"paddle", "paddleocr"}:
+        from converter.adapters.paddle_ocr import PaddleOcrEngine
+
+        return PaddleOcrEngine()
+    if selected in {"tesseract", "tess"}:
+        from converter.adapters.tesseract_ocr import TesseractOcrEngine
+
+        return TesseractOcrEngine()
     raise ValueError(f"Unknown OCR engine: {selected}")

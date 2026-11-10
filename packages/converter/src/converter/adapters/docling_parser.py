@@ -52,7 +52,7 @@ class DoclingParser(DocumentParser):
         )
 
     def parse(self, ctx: ParseContext) -> DocumentIR:
-        from docling.document_converter import DocumentConverter  # type: ignore[import-not-found]
+        from docling.document_converter import DocumentConverter
 
         converter = DocumentConverter()
         result = converter.convert(str(ctx.source_path))

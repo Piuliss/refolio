@@ -146,6 +146,40 @@ def _png_data_uri(path: Path) -> str:
     return f"data:image/png;base64,{payload}"
 
 
+def epub_text_stats(epub_path: Path) -> dict[str, int]:
+    """Structural stats only (no text samples)."""
+    import re
+
+    if not epub_path.is_file():
+        raise FileNotFoundError(epub_path)
+    with zipfile.ZipFile(epub_path, "r") as zf:
+        html_files = [n for n in zf.namelist() if n.lower().endswith((".xhtml", ".html"))]
+        chars = 0
+        for name in html_files:
+            raw = zf.read(name).decode("utf-8", errors="replace")
+            chars += len(re.sub(r"<[^>]+>", " ", raw))
+        return {
+            "html_files": len(html_files),
+            "approx_text_chars": chars,
+            "zip_bytes": epub_path.stat().st_size,
+        }
+
+
+def compare_epub_pair(baseline: Path, candidate: Path) -> dict[str, object]:
+    """Compare two EPUB artifacts (metrics only)."""
+    base = epub_text_stats(baseline)
+    cand = epub_text_stats(candidate)
+    ratio = cand["approx_text_chars"] / max(base["approx_text_chars"], 1)
+    return {
+        "baseline": base,
+        "refolio": cand,
+        "text_char_ratio": round(ratio, 4),
+        "html_file_ratio": round(
+            cand["html_files"] / max(base["html_files"], 1), 4
+        ),
+    }
+
+
 def side_by_side_png(left: Path, right: Path, *, width: int = 480) -> None:
     """Compare two page renders (e.g. source PDF vs debug export)."""
     display(

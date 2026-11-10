@@ -5,9 +5,15 @@ from __future__ import annotations
 import html
 from pathlib import Path
 
-from ebooklib import epub  # type: ignore[import-untyped]
+from ebooklib import epub
 
 from converter.ir.models import BlockType, ContentBlock, DocumentIR
+
+
+def _primary_page(block: ContentBlock) -> int | None:
+    if block.provenance.page_indices:
+        return block.provenance.page_indices[0]
+    return None
 
 
 def _block_to_html(block: ContentBlock) -> str:
@@ -86,6 +92,15 @@ def write_epub(document: DocumentIR, output_path: Path) -> None:
         for block in spine_blocks:
             if block.block_type == BlockType.TITLE and chunk:
                 flush_chunk()
+            elif chunk:
+                prev_page = _primary_page(chunk[-1])
+                next_page = _primary_page(block)
+                if (
+                    prev_page is not None
+                    and next_page is not None
+                    and prev_page != next_page
+                ):
+                    flush_chunk()
             chunk.append(block)
         flush_chunk()
 

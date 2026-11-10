@@ -11,6 +11,7 @@ from pypdf import PdfReader
 from converter.contracts import AdapterCapability, AdapterInfo, DocumentParser, ParseContext
 from converter.ir.models import (
     BlockType,
+    BoundingBox,
     ContentBlock,
     DocumentIR,
     DocumentMetadata,
@@ -28,6 +29,44 @@ class PdfReaderMeta:
     pages: list[PageRecord]
 
 
+def _span_xy(tm: tuple[float, ...], page_w: float, page_h: float) -> tuple[float, float]:
+    """Map text matrix translation to PDF user space (origin bottom-left).
+
+    Most writers use tm[4]=x, tm[5]=y; some (e.g. ReportLab via pypdf) swap them.
+    """
+    if len(tm) < 6:
+        return 0.0, 0.0
+    e = float(tm[4])
+    f = float(tm[5])
+    if e <= page_w and f <= page_h:
+        return e, f
+    if f <= page_w and e <= page_h:
+        return f, e
+    return e, f
+
+
+def _merge_row_spans(row: list[tuple[float, float, str, float]]) -> str:
+    """Join same-line spans; insert spaces when glyph positions gap."""
+    row = sorted(row, key=lambda s: s[0])
+    if not row:
+        return ""
+    parts: list[str] = []
+    prev_x = row[0][0]
+    prev_text = row[0][2]
+    prev_size = row[0][3]
+    parts.append(prev_text)
+    for x, _y, text, size in row[1:]:
+        char_w = max(prev_size * 0.45, 2.0)
+        estimated_end = prev_x + len(prev_text.rstrip()) * char_w
+        gap = x - estimated_end
+        if gap > 1.5 and not parts[-1].endswith(("-", " ")) and not text.startswith(" "):
+            parts.append(" ")
+        parts.append(text)
+        prev_x, prev_text, prev_size = x, text, size
+    merged = "".join(parts)
+    return " ".join(merged.split()) if "\n" in merged else merged.strip()
+
+
 def extract_page_lines(
     source_path: Path,
     page_index: int,
@@ -39,14 +78,19 @@ def extract_page_lines(
     page_h = float(mediabox.height)
     page_w = float(mediabox.width)
 
-    spans: list[tuple[float, float, str]] = []
+    spans: list[tuple[float, float, str, float]] = []
 
-    def visitor(text: str, cm: object, tm: tuple[float, ...], font_dict: object, font_size: float) -> None:
+    def visitor(
+        text: str,
+        cm: object,
+        tm: tuple[float, ...],
+        font_dict: object,
+        font_size: float,
+    ) -> None:
         if not text or not text.strip():
             return
-        x = float(tm[4])
-        y = float(tm[5])
-        spans.append((y, x, text))
+        x, y = _span_xy(tm, page_w, page_h)
+        spans.append((x, y, text, font_size))
 
     page.extract_text(visitor_text=visitor)
     if not spans:
@@ -54,39 +98,36 @@ def extract_page_lines(
         lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
         return [(ln, 72.0, page_h - 72.0, page_w - 72.0, page_h - 84.0) for ln in lines]
 
-    # Group spans on similar baseline (y).
-    spans.sort(key=lambda s: (-s[0], s[1]))
-    grouped: list[list[tuple[float, float, str]]] = []
-    y_tol = 2.5
-    for y, x, text in spans:
-        if not grouped or abs(grouped[-1][0][0] - y) > y_tol:
-            grouped.append([(y, x, text)])
+    spans.sort(key=lambda s: (-s[1], s[0]))
+    grouped: list[list[tuple[float, float, str, float]]] = []
+    y_tol = 3.0
+    for x, y, text, size in spans:
+        if not grouped or abs(grouped[-1][0][1] - y) > y_tol:
+            grouped.append([(x, y, text, size)])
         else:
-            grouped[-1].append((y, x, text))
+            grouped[-1].append((x, y, text, size))
 
     lines_out: list[tuple[str, float, float, float, float]] = []
     for row in grouped:
-        row.sort(key=lambda s: s[1])
-        text = "".join(t[2] for t in row).strip()
+        text = _merge_row_spans(row)
         if not text:
             continue
-        xs = [t[1] for t in row]
-        ys = [t[0] for t in row]
-        x0, x1 = min(xs), max(xs) + 40.0
-        y0, y1 = min(ys) - 2.0, max(ys) + font_size_guess(row)
+        xs = [t[0] for t in row]
+        ys = [t[1] for t in row]
+        sizes = [t[3] for t in row]
+        font_size = max(sizes) if sizes else 12.0
+        x0, x1 = min(xs), max(xs) + font_size * 2
+        y0, y1 = min(ys) - 2.0, max(ys) + font_size
         lines_out.append((text, x0, y0, x1, min(y1, page_h)))
+    lines_out.sort(key=lambda line: (-line[2], line[1]))
     return lines_out
-
-
-def font_size_guess(row: list[tuple[float, float, str]]) -> float:
-    return 12.0
 
 
 class NativePdfParser(DocumentParser):
     def info(self) -> AdapterInfo:
         return AdapterInfo(
             name="native_pdf",
-            version="0.2.0",
+            version="0.2.1",
             capabilities=(AdapterCapability.NATIVE_TEXT, AdapterCapability.LAYOUT_BLOCKS),
             license_spdx="BSD-3-Clause",
             limitations=(
@@ -136,8 +177,6 @@ class NativePdfParser(DocumentParser):
                 continue
             for text, x0, y0, x1, y1 in lines:
                 block_id = f"blk_{uuid.uuid4().hex[:12]}"
-                from converter.ir.models import BoundingBox
-
                 blocks.append(
                     ContentBlock(
                         id=block_id,
