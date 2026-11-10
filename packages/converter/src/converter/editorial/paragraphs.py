@@ -9,7 +9,6 @@ from converter.ir.models import (
     BlockType,
     ChangeRecord,
     ContentBlock,
-    ExtractionMethod,
     Provenance,
     TransformOp,
 )

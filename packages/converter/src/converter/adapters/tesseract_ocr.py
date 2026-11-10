@@ -159,7 +159,18 @@ def _tsv_to_lines(
         return []
     header = rows[0].split("\t")
     col = {name: i for i, name in enumerate(header)}
-    required = ("level", "page_num", "block_num", "line_num", "left", "top", "width", "height", "conf", "text")
+    required = (
+        "level",
+        "page_num",
+        "block_num",
+        "line_num",
+        "left",
+        "top",
+        "width",
+        "height",
+        "conf",
+        "text",
+    )
     if any(k not in col for k in required):
         return []
 

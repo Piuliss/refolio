@@ -66,7 +66,9 @@ def remove_running_matter(
         return RunningMatterResult(blocks=blocks, removed_block_ids=[], warnings=[])
 
     line_blocks = [b for b in blocks if b.block_type == BlockType.LINE]
-    text_counts: Counter[str] = Counter(b.current_text.strip() for b in line_blocks if b.current_text.strip())
+    text_counts: Counter[str] = Counter(
+        b.current_text.strip() for b in line_blocks if b.current_text.strip()
+    )
 
     removed_ids: list[str] = []
     warnings: list[WarningRecord] = []

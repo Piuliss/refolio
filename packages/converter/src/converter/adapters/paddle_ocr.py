@@ -11,8 +11,11 @@ from converter.adapters.ocr_deps import (
     missing_ocr_render_modules,
     missing_paddle_modules,
 )
-from converter.adapters.paddle_bootstrap import configure_paddle_runtime, format_paddle_runtime_error
 from converter.adapters.ocr_engine import OcrLine, OcrPageResult
+from converter.adapters.paddle_bootstrap import (
+    configure_paddle_runtime,
+    format_paddle_runtime_error,
+)
 from converter.contracts import AdapterCapability, AdapterInfo
 
 PADDLEOCR_PACKAGE_VERSION = "2.10.0"

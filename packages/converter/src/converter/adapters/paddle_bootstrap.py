@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
 import sys
 
@@ -53,10 +54,9 @@ def configure_paddle_runtime() -> None:
         os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
         os.environ.setdefault("FLAGS_num_threads", "1")
         paddle.set_device("cpu")
-    try:
+    # Older paddle builds may not expose this flag.
+    with contextlib.suppress(Exception):
         paddle.set_flags({"FLAGS_enable_pir_api": False})
-    except Exception:  # noqa: BLE001 — older paddle builds
-        pass
     _CONFIGURED = True
 
 

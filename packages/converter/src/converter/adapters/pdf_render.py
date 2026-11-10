@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 
 def render_page_rgb(
     source_pdf: Path,
     page_index: int,
     scale: float = 2.0,
-) -> tuple["object", float, float]:
+) -> tuple[Any, float, float]:
     """Return (H×W×3 uint8 image, page_width_pt, page_height_pt)."""
     import numpy as np
     import pymupdf  # type: ignore[import-untyped]

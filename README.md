@@ -22,8 +22,8 @@ converter /path/to/sample.pdf -o /tmp/out --skip-epubcheck
 mkdir -p notebooks/.local/runs/cli-smoke
 converter notebooks/.local/cuatro-mil-semanas.pdf -o notebooks/.local/runs/cli-smoke --max-pages 3 --skip-epubcheck
 
-# Scanned invoice (needs OCR extra + CONVERTER_OCR_ENGINE):
-export CONVERTER_OCR_ENGINE=paddle
+# Scanned invoice (macOS: tesseract is fast; paddle is optional/slow):
+export CONVERTER_OCR_ENGINE=tesseract
 converter notebooks/.local/pdfs/facturas/IMAG0007.PDF -o notebooks/.local/runs/cli-factura-p1 --max-pages 1 --skip-epubcheck
 ```
 

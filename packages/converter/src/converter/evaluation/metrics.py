@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from converter.ir.models import BlockType, DocumentIR, WarningRecord
+from converter.ir.models import BlockType, DocumentIR
 
 _STUCK_WORD = re.compile(
     r"[a-záéíóúñü]{3,}[A-ZÁÉÍÓÚÑ][a-záéíóúñü]{2,}"
@@ -70,7 +70,12 @@ def evaluate_document_ir(document: DocumentIR) -> QualityMetrics:
     return metrics
 
 
-def assert_no_regression(metrics: QualityMetrics, *, max_stuck: int = 0, max_newlines: int = 0) -> None:
+def assert_no_regression(
+    metrics: QualityMetrics,
+    *,
+    max_stuck: int = 0,
+    max_newlines: int = 0,
+) -> None:
     if metrics.stuck_word_hits > max_stuck:
         raise AssertionError(f"stuck_word_hits={metrics.stuck_word_hits} > {max_stuck}")
     if metrics.embedded_newline_hits > max_newlines:
