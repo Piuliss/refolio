@@ -1,4 +1,4 @@
-"""Paddle runtime setup for local CPU OCR (macOS / Linux)."""
+"""Paddle runtime setup for OCR on CPU (macOS) or GPU (Linux + CUDA)."""
 
 from __future__ import annotations
 
@@ -15,22 +15,44 @@ _ALLOCATOR_HINT = (
 )
 
 
+def _force_cpu() -> bool:
+    return os.environ.get("CONVERTER_PADDLE_FORCE_CPU", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+
+
+def _cuda_available() -> bool:
+    import paddle  # type: ignore[import-untyped]
+
+    if not paddle.is_compiled_with_cuda():
+        return False
+    try:
+        return int(paddle.device.cuda.device_count()) > 0
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def configure_paddle_runtime() -> None:
-    """Set CPU-only flags before Paddle loads inference models."""
+    """Configure Paddle for GPU when CUDA is present; otherwise CPU-only."""
     global _CONFIGURED
     if _CONFIGURED:
         return
-    os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
-    os.environ.setdefault("FLAGS_use_mkldnn", "0")
     os.environ.setdefault("FLAGS_allocator_strategy", "auto_growth")
-    # Avoid OpenMP oversubscription that can stall inference for tens of minutes on macOS.
-    os.environ.setdefault("OMP_NUM_THREADS", "1")
-    os.environ.setdefault("MKL_NUM_THREADS", "1")
-    os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
-    os.environ.setdefault("FLAGS_num_threads", "1")
     import paddle  # type: ignore[import-untyped]
 
-    paddle.set_device("cpu")
+    if not _force_cpu() and _cuda_available():
+        paddle.set_device("gpu:0")
+    else:
+        os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
+        os.environ.setdefault("FLAGS_use_mkldnn", "0")
+        # Avoid OpenMP oversubscription that can stall inference for tens of minutes on macOS.
+        os.environ.setdefault("OMP_NUM_THREADS", "1")
+        os.environ.setdefault("MKL_NUM_THREADS", "1")
+        os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+        os.environ.setdefault("FLAGS_num_threads", "1")
+        paddle.set_device("cpu")
     try:
         paddle.set_flags({"FLAGS_enable_pir_api": False})
     except Exception:  # noqa: BLE001 — older paddle builds
