@@ -13,7 +13,7 @@ def render_page_rgb(
 ) -> tuple[Any, float, float]:
     """Return (H×W×3 uint8 image, page_width_pt, page_height_pt)."""
     import numpy as np
-    import pymupdf  # type: ignore[import-untyped]
+    import pymupdf
 
     doc = pymupdf.open(str(source_pdf))
     try:
@@ -39,7 +39,7 @@ def render_page_rgb_png(
     scale: float = 2.0,
 ) -> tuple[float, float, int, int]:
     """Write page PNG; return (page_w_pt, page_h_pt, img_w, img_h)."""
-    import pymupdf  # type: ignore[import-untyped]
+    import pymupdf
 
     doc = pymupdf.open(str(source_pdf))
     try:

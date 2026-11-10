@@ -25,7 +25,7 @@ def _force_cpu() -> bool:
 
 
 def _cuda_available() -> bool:
-    import paddle  # type: ignore[import-untyped]
+    import paddle
 
     if not paddle.is_compiled_with_cuda():
         return False
@@ -41,7 +41,7 @@ def configure_paddle_runtime() -> None:
     if _CONFIGURED:
         return
     os.environ.setdefault("FLAGS_allocator_strategy", "auto_growth")
-    import paddle  # type: ignore[import-untyped]
+    import paddle
 
     if not _force_cpu() and _cuda_available():
         paddle.set_device("gpu:0")

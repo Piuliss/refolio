@@ -69,5 +69,8 @@ module = [
     "paddle",
     "paddle.*",
     "pymupdf",
+    "numpy",
+    "numpy.*",
 ]
 ignore_missing_imports = true
+follow_imports = "skip"

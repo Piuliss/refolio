@@ -50,7 +50,7 @@ class PaddleOcrEngine:
         if lang in self._clients:
             return self._clients[lang]
         configure_paddle_runtime()
-        from paddleocr import PaddleOCR  # type: ignore[import-untyped]
+        from paddleocr import PaddleOCR
 
         client = PaddleOCR(
             use_angle_cls=self._use_angle_cls,

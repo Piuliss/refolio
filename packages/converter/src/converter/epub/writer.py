@@ -5,7 +5,7 @@ from __future__ import annotations
 import html
 from pathlib import Path
 
-from ebooklib import epub  # type: ignore[import-untyped]
+from ebooklib import epub
 
 from converter.ir.models import BlockType, ContentBlock, DocumentIR
 
